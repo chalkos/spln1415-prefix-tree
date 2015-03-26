@@ -1,2 +1,2 @@
-# spln1415-tp1
+# PrefixTree
 Primeiro Trabalho Prático de SPLN, Mestrado em Engenharia Informática @ Universidade do Minho
