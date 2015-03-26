@@ -156,7 +156,8 @@ Repositório de código: https://github.com/chalkos/spln1415-prefix-tree
 
 =head1 AUTHORS
 
- Bruno Ferreira, https://github.com/chalkos
- Miguel Pinto, https://github.com/miguelpinto98
+Bruno Ferreira, https://github.com/chalkos
+
+Miguel Pinto, https://github.com/miguelpinto98
 
 =cut
