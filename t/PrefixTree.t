@@ -65,4 +65,47 @@ subtest 'Adicionar e remover palavras' => sub {
   }
 };
 
+subtest 'Save and load' => sub {
+  # criar uma prefix tree vazia e adicionar uma série de palavras
+  my $t = PrefixTree->new;
+  my @test_words = qw/a abacate abrenuncio abeto/;
+  my @test_no_words = qw/abc abz afz as/;
+  $t->add_word(@test_words);
+
+  # verificar que existem no dicionario
+  foreach my $w (@test_words) {
+    ok($t->word_exists($w), "palavra '$w' existe");
+  }
+
+  # verificar que palavras que não foram adicionadas não existem no dicionario
+  foreach my $w (@test_no_words) {
+    ok(!$t->word_exists($w), "palavra '$w' não existe");
+  }
+
+  # save
+  $t->save('test.save');
+
+  # criar uma nova árvore
+  $t = PrefixTree->new;
+
+  # verificar que palavras que não foram adicionadas não existem no dicionario
+  foreach my $w ( @test_words, @test_no_words ) {
+    ok(!$t->word_exists($w), "palavra '$w' não existe");
+  }
+
+  # load
+  $t->load('test.save');
+
+  # verificar que existem no dicionario
+  foreach my $w (@test_words) {
+    ok($t->word_exists($w), "palavra '$w' existe");
+  }
+
+  # verificar que palavras que não foram adicionadas não existem no dicionario
+  foreach my $w (@test_no_words) {
+    ok(!$t->word_exists($w), "palavra '$w' não existe");
+  }
+
+};
+
 done_testing();
