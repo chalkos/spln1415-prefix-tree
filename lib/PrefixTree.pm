@@ -25,8 +25,11 @@ our $VERSION = '0.01';
 
 sub new{
   my $class = shift;
-  add_dict($_) foreach(@_);
-  return bless {}, $class;
+  my $self = bless {}, $class;
+  for my $file (@_) {
+    $self->add_dict($file);
+  }
+  return $self;
 }
 
 sub save{
@@ -38,15 +41,14 @@ sub load{
 }
 
 sub add_dict{
-  my $self = shift;
-  shift;
+  my ($self, $dict) = @_;
   my $in;
-  if(/gz$/){
-    open($in, "gzcat $_ |") or die "cannot open '$_': $!";
-  }elsif(/bz2$/){
-    open($in, "bzcat $_ |") or die "cannot open '$_': $!";
+  if($dict =~ /gz$/){
+    open($in, "zcat $dict |") or die "cannot open '$dict': $!";
+  }elsif($dict =~ /bz2$/){
+    open($in, "bzcat $dict |") or die "cannot open '$dict': $!";
   }else{
-    open($in, "<", $_) or die "cannot open '$_': $!";
+    open($in, "<", $dict) or die "cannot open '$dict': $!";
   }
 
   add_word($_) while(<$in>);
