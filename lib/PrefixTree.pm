@@ -4,6 +4,8 @@ use 5.020001;
 use strict;
 use warnings;
 
+use Data::Dumper;
+
 #require Exporter;
 
 #our @ISA = qw(Exporter);
@@ -23,8 +25,11 @@ our $VERSION = '0.01';
 
 sub new{
   my $class = shift;
-  add_dict($_) foreach(@_);
-  return bless {}, $class;
+  my $self = bless {}, $class;
+  for my $file (@_) {
+    $self->add_dict($file);
+  }
+  return $self;
 }
 
 sub save{
@@ -36,15 +41,15 @@ sub load{
 }
 
 sub add_dict{
+  my ($self, $dict) = @_;
   my $in;
-  if(/gz$/){
-    open $in, "gzcat $_ |";
-  }elsif(/bz2$/){
-    open $in, "bzcat $_ |";
+  if($dict =~ /gz$/){
+    open($in, "zcat $dict |") or die "cannot open '$dict': $!";
+  }elsif($dict =~ /bz2$/){
+    open($in, "bzcat $dict |") or die "cannot open '$dict': $!";
   }else{
-    open($in, "<", $_)
+    open($in, "<", $dict) or die "cannot open '$dict': $!";
   }
-  die "cannot open '$_': $!" unless($in);
 
   add_word($_) while(<$in>);
 
@@ -53,10 +58,10 @@ sub add_dict{
 
 sub add_word{
   my $self = shift;
-  @chars = split(chomp(shift)); #assim nao funciona porque o chomp não retorna anda
-  foreach(@chars){
-    print "char: $_\n";
-  }
+  #@chars = split(chomp(shift)); #assim nao funciona porque o chomp não retorna nada
+  #foreach(@chars){
+  #  print "char: $_\n";
+  #}
 }
 
 sub rem_word{
