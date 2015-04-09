@@ -25,7 +25,7 @@ our $VERSION = '0.01';
 
 sub new{
   my $class = shift;
-  my $self = bless {}, $class;
+  my $self = bless {'tree'=>{}}, $class;
   for my $file (@_) {
     $self->add_dict($file);
   }
@@ -51,17 +51,27 @@ sub add_dict{
     open($in, "<", $dict) or die "cannot open '$dict': $!";
   }
 
-  add_word($_) while(<$in>);
+  $self->add_word($_) while(<$in>);
 
   close($in);
 }
 
 sub add_word{
-  my $self = shift;
-  #@chars = split(chomp(shift)); #assim nao funciona porque o chomp não retorna nada
-  #foreach(@chars){
-  #  print "char: $_\n";
-  #}
+  my ($self,$pal) = @_;
+
+  chomp $pal;
+  lc $pal;
+  my @chars = split('',$pal);
+
+  my $hash = $self->{'tree'};
+
+  foreach my $x (@chars) {
+    unless (exists $hash->{$x}) {
+      $hash->{$x} = {};
+    }
+    $hash = $hash->{$x};
+  }
+  $hash->{'end'} = 1;
 }
 
 sub rem_word{
