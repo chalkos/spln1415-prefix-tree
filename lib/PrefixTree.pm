@@ -83,11 +83,33 @@ sub get_words_with_prefix{
 }
 
 sub prefix_exists{
+  my ($self,$pal) = @_;
+  my $hash = $self->{'tree'};
 
+  chomp $pal;
+  lc $pal;
+  my @chars = split('',$pal);
+
+  foreach my $x (@chars) {
+    return 0 unless exists $hash->{$x};
+    $hash = $hash->{$x};
+  }
+  return 1;
 }
 
 sub word_exists{
+  my ($self,$pal) = @_;
+  my $hash = $self->{'tree'};
 
+  chomp $pal;
+  lc $pal;
+  my @chars = split('',$pal);
+
+  foreach my $x (@chars) {
+    return 0 unless exists $hash->{$x};
+    $hash = $hash->{$x};
+  }
+  return exists $hash->{'end'} ? 1 : 0;
 }
 
 
