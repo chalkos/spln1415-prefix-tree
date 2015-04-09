@@ -56,14 +56,18 @@ sub add_dict{
   close($in);
 }
 
+sub palToChars {
+  my $pal = shift;
+  chomp $pal;
+  $pal = lc $pal;
+  my @chars = split('',$pal);
+}
+
 sub add_word{
   my ($self,$pal) = @_;
-
-  chomp $pal;
-  lc $pal;
-  my @chars = split('',$pal);
-
   my $hash = $self->{'tree'};
+
+  my @chars = palToChars($pal);
 
   foreach my $x (@chars) {
     unless (exists $hash->{$x}) {
@@ -86,9 +90,7 @@ sub prefix_exists{
   my ($self,$pal) = @_;
   my $hash = $self->{'tree'};
 
-  chomp $pal;
-  lc $pal;
-  my @chars = split('',$pal);
+  my @chars = palToChars($pal);
 
   foreach my $x (@chars) {
     return 0 unless exists $hash->{$x};
@@ -101,15 +103,13 @@ sub word_exists{
   my ($self,$pal) = @_;
   my $hash = $self->{'tree'};
 
-  chomp $pal;
-  lc $pal;
-  my @chars = split('',$pal);
+  my @chars = palToChars($pal);
 
   foreach my $x (@chars) {
     return 0 unless exists $hash->{$x};
     $hash = $hash->{$x};
   }
-  return exists $hash->{'end'} ? 1 : 0;
+  return exists $hash->{'end'};
 }
 
 
