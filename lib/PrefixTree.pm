@@ -79,7 +79,17 @@ sub add_word{
 }
 
 sub rem_word{
+  my ($self,$pal) = @_;
+  my $hash = $self->{'tree'};
 
+  if (word_exists($self,$pal)) {
+    my @chars = palToChars($pal);
+
+    foreach my $x (@chars) {
+      $hash = $hash->{$x};
+    }
+    delete $hash->{'end'};
+  }
 }
 
 sub get_words_with_prefix{
