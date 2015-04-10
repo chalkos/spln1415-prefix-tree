@@ -56,16 +56,9 @@ sub add_dict{
   close($in);
 }
 
-sub palToChars {
-  my $pal = shift;
-  chomp $pal;
-  $pal = lc $pal;
-  my @chars = split('',$pal);
-}
-
 sub add_word{
   my ($self,$pal) = @_;
-  eval '$self->{"tree"}' . (join '', map { "{'$_'}" } palToChars($pal)) . "{'end'}=1"
+  eval '$self->{"tree"}' . (join '', map { "{'$_'}" } _palToChars($pal)) . "{'end'}=1"
 }
 
 sub rem_word{
@@ -73,7 +66,7 @@ sub rem_word{
   my $hash = $self->{'tree'};
 
   if (word_exists($self,$pal)) {
-    my @chars = palToChars($pal);
+    my @chars = _palToChars($pal);
 
     foreach my $x (@chars) {
       $hash = $hash->{$x};
@@ -90,7 +83,7 @@ sub prefix_exists{
   my ($self,$pal) = @_;
   my $hash = $self->{'tree'};
 
-  my @chars = palToChars($pal);
+  my @chars = _palToChars($pal);
 
   foreach my $x (@chars) {
     return 0 unless exists $hash->{$x};
@@ -103,13 +96,22 @@ sub word_exists{
   my ($self,$pal) = @_;
   my $hash = $self->{'tree'};
 
-  my @chars = palToChars($pal);
+  my @chars = _palToChars($pal);
 
   foreach my $x (@chars) {
     return 0 unless exists $hash->{$x};
     $hash = $hash->{$x};
   }
   return exists $hash->{'end'};
+}
+
+# PRIVATE METHODS
+
+sub _palToChars {
+  my $pal = shift;
+  chomp $pal;
+  $pal = lc $pal;
+  my @chars = split('',$pal);
 }
 
 
