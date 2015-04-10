@@ -33,7 +33,7 @@ subtest 'Adicionar e remover palavras' => sub {
   my $t = PrefixTree->new;
   my @test_words = qw/a abacate abrenuncio abeto/;
   my @test_no_words = qw/abc abz afz as/;
-  $t->add_word(@test_words);
+  $t->add_word($_) for @test_words;
 
   # verificar que existem no dicionario
   foreach my $w (@test_words) {
@@ -70,7 +70,7 @@ subtest 'Save and load' => sub {
   my $t = PrefixTree->new;
   my @test_words = qw/a abacate abrenuncio abeto/;
   my @test_no_words = qw/abc abz afz as/;
-  $t->add_word(@test_words);
+  $t->add_word($_) for @test_words;
 
   # verificar que existem no dicionario
   foreach my $w (@test_words) {
@@ -105,6 +105,8 @@ subtest 'Save and load' => sub {
   foreach my $w (@test_no_words) {
     ok(!$t->word_exists($w), "palavra '$w' não existe");
   }
+
+  unlink 't/test.save'
 };
 
 done_testing();
