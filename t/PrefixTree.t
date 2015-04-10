@@ -18,9 +18,7 @@ can_ok('PrefixTree', qw(new save load add_dict add_word rem_word get_words_with_
 
 #########################
 
-print "-------------", getcwd;
-
-subtest 'Criar PrefixTree' => sub {
+subtest 'Create PrefixTree' => sub {
   isa_ok( PrefixTree->new, 'PrefixTree' );
   isa_ok( PrefixTree->new('t/words_small'), 'PrefixTree' );
   isa_ok( PrefixTree->new('t/words_small.gz'), 'PrefixTree' );
@@ -28,7 +26,7 @@ subtest 'Criar PrefixTree' => sub {
   isa_ok( PrefixTree->new(qw(t/words_small t/words_small.gz t/words_small.bz2)), 'PrefixTree' );
 };
 
-subtest 'Adicionar e remover palavras' => sub {
+subtest 'Add and remove words' => sub {
   # criar uma prefix tree vazia e adicionar uma série de palavras
   my $t = PrefixTree->new;
   my @test_words = qw/a abacate abrenuncio abeto/;
@@ -107,6 +105,36 @@ subtest 'Save and load' => sub {
   }
 
   unlink 't/test.save'
+};
+
+subtest 'Prefix search' => sub {
+  my $t = PrefixTree->new('t/words');
+  my ($prefix,@expected,@got);
+
+  # get_words_with_prefix
+  $prefix = 'abes';
+  @expected = qw/abespinhada abespinhado abespinhados/;
+  @got = $t->get_words_with_prefix($prefix);
+  is_deeply( \@got, \@expected, join(", ",@expected).' são as unicas palavras com o prefixo '.$prefix );
+
+  $prefix = 'abc';
+  @expected = qw/abcesso abcessos/;
+  @got = $t->get_words_with_prefix($prefix);
+  is_deeply( \@got, \@expected, join(", ",@expected).' são as unicas palavras com o prefixo '.$prefix );
+
+  $prefix = 'abcdefg';
+  @expected = qw//;
+  @got = $t->get_words_with_prefix($prefix);
+  is_deeply( \@got, \@expected, 'não existem palavras com o prefixo '.$prefix );
+
+
+  # prefix_exists
+  foreach my $p (qw/ab dua crep estra oliva mar/) {
+    ok($t->prefix_exists($p), "prefixo '$p' existe");
+  }
+  foreach my $p (qw/aw wb zc/) {
+    ok(!$t->prefix_exists($p), "prefixo '$p' não existe");
+  }
 };
 
 done_testing();
