@@ -65,8 +65,6 @@ sub palToChars {
 
 sub add_word{
   my ($self,$pal) = @_;
-  my $hash = $self->{'tree'};
-
   eval '$self->{"tree"}' . (join '', map { "{'$_'}" } palToChars($pal)) . "{'end'}=1"
 }
 
