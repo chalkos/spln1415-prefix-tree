@@ -83,7 +83,7 @@ subtest 'Save and load' => sub {
   }
 
   # save
-  $t->save('test.save');
+  $t->save('t/test.save');
 
   # criar uma nova árvore
   $t = PrefixTree->new;
@@ -94,7 +94,7 @@ subtest 'Save and load' => sub {
   }
 
   # load
-  $t->load('test.save');
+  $t->load('t/test.save');
 
   # verificar que existem no dicionario
   foreach my $w (@test_words) {
@@ -105,7 +105,6 @@ subtest 'Save and load' => sub {
   foreach my $w (@test_no_words) {
     ok(!$t->word_exists($w), "palavra '$w' não existe");
   }
-
 };
 
 done_testing();
