@@ -64,18 +64,28 @@ sub add_word{
   eval '$self->{"tree"}' . (join '', map { "{'$_'}" } _palToChars($pal)) . "{'end'}=1"
 }
 
+# sub rem_word{
+#   my ($self,$pal) = @_;
+#   my $hash = $self->{'tree'};
+
+#   my @chars = _palToChars($pal);
+
+#   foreach my $x (@chars) {
+#     $hash = $hash->{$x};
+#   }
+
+#   if(exists $hash->{'end'}) {
+#     delete $hash->{'end'};
+#   }
+# }
+
 sub rem_word{
   my ($self,$pal) = @_;
   my $hash = $self->{'tree'};
 
-  if (word_exists($self,$pal)) {
-    my @chars = _palToChars($pal);
+  my @chars = _palToChars($pal);
 
-    foreach my $x (@chars) {
-      $hash = $hash->{$x};
-    }
-    delete $hash->{'end'};
-  }
+  _remove_pal_rec($hash,\@chars);
 }
 
 sub get_words_with_prefix{
@@ -90,7 +100,7 @@ sub get_words_with_prefix{
 
   my @result = ();
 
-  get_down_word($hash,$pal,\@result);
+  _get_down_word($hash,$pal,\@result);
 
   return @result;
 }
@@ -130,14 +140,35 @@ sub _palToChars {
   my @chars = split('',$pal);
 }
 
-sub get_down_word {
+sub _get_down_word {
   my ($hash,$pal,$res) = @_;
 
   foreach my $x (keys %$hash) {
     if ($x eq 'end') {
       push(@$res,$pal);
     } else {
-      get_down_word($hash->{$x}, $pal.$x, $res);
+      _get_down_word($hash->{$x}, $pal.$x, $res);
+    }
+  }
+}
+
+sub _remove_pal_rec {
+  my ($hash,$chars) = @_;
+
+  if (!@$chars){
+    # Se existir um end remove-o
+    if (exists $hash->{'end'}) {
+      delete $hash->{'end'};
+    }
+  } else {
+    my $letter = shift @$chars;
+
+    if (exists $hash->{$letter}) {
+      _remove_pal_rec($hash->{$letter}, $chars);
+      # Remover Hash se estiver vazia
+      unless (%{$hash->{$letter}}) {
+        delete $hash->{$letter};
+      }
     }
   }
 }
