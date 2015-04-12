@@ -5,6 +5,7 @@ use strict;
 use warnings;
 
 use Data::Dumper;
+use Storable;
 
 #require Exporter;
 
@@ -33,11 +34,13 @@ sub new{
 }
 
 sub save{
-
+  my ($self,$filename) = @_;
+  store($self->{'tree'}, $filename) or die "cannot save tree to '$filename': $!";
 }
 
 sub load{
-
+  my ($self,$filename) = @_;
+  $self->{'tree'} = retrieve($filename) or die "cannot load tree from '$filename': $!";
 }
 
 sub add_dict{
