@@ -76,7 +76,20 @@ sub rem_word{
 }
 
 sub get_words_with_prefix{
+  my ($self,$pal) = @_;
+  my $hash = $self->{'tree'};
 
+  my @chars = _palToChars($pal);
+
+  foreach my $x (@chars) {
+    $hash = $hash->{$x};
+  }
+
+  my @result = ();
+
+  get_down_word($hash,$pal,\@result);
+
+  return @result;
 }
 
 sub prefix_exists{
@@ -112,6 +125,18 @@ sub _palToChars {
   chomp $pal;
   $pal = lc $pal;
   my @chars = split('',$pal);
+}
+
+sub get_down_word {
+  my ($hash,$pal,$res) = @_;
+
+  foreach my $x (keys %$hash) {
+    if ($x eq 'end') {
+      push(@$res,$pal);
+    } else {
+      get_down_word($hash->{$x}, $pal.$x, $res);
+    }
+  }
 }
 
 
