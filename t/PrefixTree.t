@@ -114,12 +114,12 @@ subtest 'Prefix search' => sub {
   # get_words_with_prefix
   $prefix = 'abes';
   @expected = qw/abespinhada abespinhado abespinhados/;
-  @got = $t->get_words_with_prefix($prefix);
+  @got = sort $t->get_words_with_prefix($prefix);
   is_deeply( \@got, \@expected, join(", ",@expected).' são as unicas palavras com o prefixo '.$prefix );
 
   $prefix = 'abc';
   @expected = qw/abcesso abcessos/;
-  @got = $t->get_words_with_prefix($prefix);
+  @got = sort $t->get_words_with_prefix($prefix);
   is_deeply( \@got, \@expected, join(", ",@expected).' são as unicas palavras com o prefixo '.$prefix );
 
   $prefix = 'abcdefg';
