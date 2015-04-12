@@ -64,21 +64,6 @@ sub add_word{
   eval '$self->{"tree"}' . (join '', map { "{'$_'}" } _palToChars($pal)) . "{'end'}=1"
 }
 
-# sub rem_word{
-#   my ($self,$pal) = @_;
-#   my $hash = $self->{'tree'};
-
-#   my @chars = _palToChars($pal);
-
-#   foreach my $x (@chars) {
-#     $hash = $hash->{$x};
-#   }
-
-#   if(exists $hash->{'end'}) {
-#     delete $hash->{'end'};
-#   }
-# }
-
 sub rem_word{
   my ($self,$pal) = @_;
   my $hash = $self->{'tree'};
