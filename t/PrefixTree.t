@@ -76,7 +76,7 @@ subtest 'Save and load' => sub {
   # criar uma nova árvore
   $t = PrefixTree->new;
 
-  check_words($t, \(), [(@test_words, @test_no_words)]);
+  check_words($t, [], [@test_words, @test_no_words]);
 
   # load
   $t->load('t/test.save');
@@ -120,6 +120,10 @@ subtest 'Prefix search' => sub {
   foreach my $p (qw/abespinhadas az me/) {
     ok(!$t->prefix_exists($p), "prefixo '$p' não existe");
   }
+
+  # testar uma palavra que não existe e verificar se o prefixo passou a existir
+  $t->word_exists('palavra');
+  ok(!$t->prefix_exists('pa'), "prefixo 'pa' não existe");
 };
 
 done_testing();
