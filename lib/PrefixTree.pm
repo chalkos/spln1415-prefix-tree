@@ -4,6 +4,9 @@ use 5.020001;
 use strict;
 use warnings;
 
+use Data::Dumper;
+use Storable;
+
 #require Exporter;
 
 #our @ISA = qw(Exporter);
@@ -23,56 +26,137 @@ our $VERSION = '0.01';
 
 sub new{
   my $class = shift;
-  add_dict($_) foreach(@_);
-  return bless {}, $class;
+  my $self = bless {'tree'=>{}}, $class;
+  for my $file (@_) {
+    $self->add_dict($file);
+  }
+  return $self;
 }
 
 sub save{
-
+  my ($self,$filename) = @_;
+  store($self->{'tree'}, $filename) or die "cannot save tree to '$filename': $!";
 }
 
 sub load{
-
+  my ($self,$filename) = @_;
+  $self->{'tree'} = retrieve($filename) or die "cannot load tree from '$filename': $!";
 }
 
 sub add_dict{
+  my ($self, $dict) = @_;
   my $in;
-  if(/gz$/){
-    open $in, "gzcat $_ |";
-  }elsif(/bz2$/){
-    open $in, "bzcat $_ |";
+  if($dict =~ /gz$/){
+    open($in, "zcat $dict |") or die "cannot open '$dict': $!";
+  }elsif($dict =~ /bz2$/){
+    open($in, "bzcat $dict |") or die "cannot open '$dict': $!";
   }else{
-    open($in, "<", $_)
+    open($in, "<", $dict) or die "cannot open '$dict': $!";
   }
-  die "cannot open '$_': $!" unless($in);
 
-  add_word($_) while(<$in>);
+  $self->add_word($_) while(<$in>);
 
   close($in);
 }
 
 sub add_word{
-  my $self = shift;
-  @chars = split(chomp(shift)); #assim nao funciona porque o chomp não retorna anda
-  foreach(@chars){
-    print "char: $_\n";
-  }
+  my ($self,$pal) = @_;
+  eval '$self->{"tree"}' . (join '', map { "{'$_'}" } _palToChars($pal)) . "{'end'}=1"
 }
 
 sub rem_word{
+  my ($self,$pal) = @_;
+  my $hash = $self->{'tree'};
 
+  my @chars = _palToChars($pal);
+
+  _remove_pal_rec($hash,\@chars);
 }
 
 sub get_words_with_prefix{
+  my ($self,$pal) = @_;
+  my $hash = $self->{'tree'};
 
+  my @chars = _palToChars($pal);
+
+  foreach my $x (@chars) {
+    return () unless exists $hash->{$x};
+    $hash = $hash->{$x};
+  }
+
+  my @result = ();
+
+  _get_down_word($hash,$pal,\@result);
+
+  return @result;
 }
 
 sub prefix_exists{
+  my ($self,$pal) = @_;
+  my $hash = $self->{'tree'};
 
+  my @chars = _palToChars($pal);
+
+  foreach my $x (@chars) {
+    return 0 unless exists $hash->{$x};
+    $hash = $hash->{$x};
+  }
+  return 1;
 }
 
 sub word_exists{
+  my ($self,$pal) = @_;
+  my $hash = $self->{'tree'};
 
+  my @chars = _palToChars($pal);
+
+  foreach my $x (@chars) {
+    return 0 unless exists $hash->{$x};
+    $hash = $hash->{$x};
+  }
+  return exists $hash->{'end'};
+}
+
+# PRIVATE METHODS
+
+sub _palToChars {
+  my $pal = shift;
+  chomp $pal;
+  $pal = lc $pal;
+  my @chars = split('',$pal);
+}
+
+sub _get_down_word {
+  my ($hash,$pal,$res) = @_;
+
+  foreach my $x (keys %$hash) {
+    if ($x eq 'end') {
+      push(@$res,$pal);
+    } else {
+      _get_down_word($hash->{$x}, $pal.$x, $res);
+    }
+  }
+}
+
+sub _remove_pal_rec {
+  my ($hash,$chars) = @_;
+
+  if (!@$chars){
+    # Se existir um end remove-o
+    if (exists $hash->{'end'}) {
+      delete $hash->{'end'};
+    }
+  } else {
+    my $letter = shift @$chars;
+
+    if (exists $hash->{$letter}) {
+      _remove_pal_rec($hash->{$letter}, $chars);
+      # Remover Hash se estiver vazia
+      unless (%{$hash->{$letter}}) {
+        delete $hash->{$letter};
+      }
+    }
+  }
 }
 
 
