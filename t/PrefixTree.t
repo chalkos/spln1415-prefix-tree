@@ -26,41 +26,39 @@ subtest 'Create PrefixTree' => sub {
   isa_ok( PrefixTree->new(qw(t/words_small t/words_small.gz t/words_small.bz2)), 'PrefixTree' );
 };
 
+sub check_words {
+  my ($t, $test_words, $test_no_words) = @_;
+
+  # verificar que existem no dicionario
+  foreach my $w (@$test_words) {
+    ok($t->word_exists($w), "palavra '$w' existe");
+  }
+
+  # verificar que palavras que não foram adicionadas não existem no dicionario
+  foreach my $w (@$test_no_words) {
+    ok(!$t->word_exists($w), "palavra '$w' não existe");
+  }
+}
+
 subtest 'Add and remove words' => sub {
   # criar uma prefix tree vazia e adicionar uma série de palavras
   my $t = PrefixTree->new;
   my @test_words = qw/a abacate abrenuncio abeto/;
   my @test_no_words = qw/abc abz afz as/;
-  $t->add_word($_) for @test_words;
-
-  # verificar que existem no dicionario
-  foreach my $w (@test_words) {
-    ok($t->word_exists($w), "palavra '$w' existe");
-  }
-
-  # verificar que palavras que não foram adicionadas não existem no dicionario
-  foreach my $w (@test_no_words) {
-    ok(!$t->word_exists($w), "palavra '$w' não existe");
-  }
+  $t->add_word($_) for qw/a abacate abrenuncio abeto/;
 
   # remover uma palavra que não existia e verificar que continua tudo igual
-  $t->rem_word('ola');
-  foreach my $w (@test_words) {
-    ok($t->word_exists($w), "palavra '$w' existe");
-  }
-  foreach my $w (@test_no_words) {
-    ok(!$t->word_exists($w), "palavra '$w' não existe");
-  }
+  $t->rem_word('aba');
+  check_words($t, [qw/a abacate abrenuncio abeto/], [qw/abc abz afz as/]);
 
-  # remover uma palavra que existia e verificar que deixou de existir
-  $t->rem_word($test_words[0]);
-  unshift( @test_no_words, shift(@test_words));
-  foreach my $w (@test_words) {
-    ok($t->word_exists($w), "palavra '$w' existe");
-  }
-  foreach my $w (@test_no_words) {
-    ok(!$t->word_exists($w), "palavra '$w' não existe");
-  }
+  # remover um prefixo e verificar que funciona correctamente
+  $t->rem_word('a');
+  check_words($t, [qw/abacate abrenuncio abeto/], [qw/a abc abz afz as/]);
+
+  # remover uma palavra cm um prefixo que também é uma palavra
+  $t->add_word('a');
+  $t->rem_word('abeto');
+  check_words($t, [qw/a abacate abrenuncio/], [qw/abc abz afz as abeto/]);
 };
 
 subtest 'Save and load' => sub {
@@ -70,15 +68,7 @@ subtest 'Save and load' => sub {
   my @test_no_words = qw/abc abz afz as/;
   $t->add_word($_) for @test_words;
 
-  # verificar que existem no dicionario
-  foreach my $w (@test_words) {
-    ok($t->word_exists($w), "palavra '$w' existe");
-  }
-
-  # verificar que palavras que não foram adicionadas não existem no dicionario
-  foreach my $w (@test_no_words) {
-    ok(!$t->word_exists($w), "palavra '$w' não existe");
-  }
+  check_words($t, \@test_words, \@test_no_words);
 
   # save
   $t->save('t/test.save');
@@ -86,53 +76,48 @@ subtest 'Save and load' => sub {
   # criar uma nova árvore
   $t = PrefixTree->new;
 
-  # verificar que palavras que não foram adicionadas não existem no dicionario
-  foreach my $w ( @test_words, @test_no_words ) {
-    ok(!$t->word_exists($w), "palavra '$w' não existe");
-  }
+  check_words($t, \(), [(@test_words, @test_no_words)]);
 
   # load
   $t->load('t/test.save');
 
-  # verificar que existem no dicionario
-  foreach my $w (@test_words) {
-    ok($t->word_exists($w), "palavra '$w' existe");
-  }
-
-  # verificar que palavras que não foram adicionadas não existem no dicionario
-  foreach my $w (@test_no_words) {
-    ok(!$t->word_exists($w), "palavra '$w' não existe");
-  }
+  check_words($t, \@test_words, \@test_no_words);
 
   unlink 't/test.save'
 };
 
+sub check_words_with_prefix {
+  my ($t, $prefix, $expected) = @_;
+  my @got = sort $t->get_words_with_prefix($prefix);
+  is_deeply( \@got, $expected, join(", ",@$expected).' são as unicas palavras com o prefixo '.$prefix );
+}
+
 subtest 'Prefix search' => sub {
-  my $t = PrefixTree->new('t/words');
-  my ($prefix,@expected,@got);
+  my $t = PrefixTree->new;
 
-  # get_words_with_prefix
-  $prefix = 'abes';
-  @expected = qw/abespinhada abespinhado abespinhados/;
-  @got = sort $t->get_words_with_prefix($prefix);
-  is_deeply( \@got, \@expected, join(", ",@expected).' são as unicas palavras com o prefixo '.$prefix );
+  # adicionar uma lista de palavras
+  for my $w (qw/abespinhada abespinhado abespinhados abcesso abcessos mare marinheiro oliva/){
+    $t->add_word($w);
+  }
 
-  $prefix = 'abc';
-  @expected = qw/abcesso abcessos/;
-  @got = sort $t->get_words_with_prefix($prefix);
-  is_deeply( \@got, \@expected, join(", ",@expected).' são as unicas palavras com o prefixo '.$prefix );
+  ###############################
+  ### check_words_with_prefix
 
-  $prefix = 'abcdefg';
-  @expected = qw//;
-  @got = $t->get_words_with_prefix($prefix);
-  is_deeply( \@got, \@expected, 'não existem palavras com o prefixo '.$prefix );
+  # testar com prefixos que existem
+  check_words_with_prefix($t, 'abes', [qw/abespinhada abespinhado abespinhados/]);
+  check_words_with_prefix($t, 'abc', [qw/abcesso abcessos/]);
 
+  # testar com um prefixo que não existe
+  check_words_with_prefix($t, 'abcdefg', []);
 
-  # prefix_exists
-  foreach my $p (qw/ab dua crep estra oliva mar/) {
+  ###############################
+  ### prefix_exists
+
+  # testar com um prefixo que existe
+  foreach my $p (qw/ab oliva/) {
     ok($t->prefix_exists($p), "prefixo '$p' existe");
   }
-  foreach my $p (qw/aw wb zc/) {
+  foreach my $p (qw/abespinhadas az me/) {
     ok(!$t->prefix_exists($p), "prefixo '$p' não existe");
   }
 };
