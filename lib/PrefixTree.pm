@@ -80,6 +80,7 @@ sub get_words_with_prefix{
   my @chars = _palToChars($pal);
 
   foreach my $x (@chars) {
+    return () unless exists $hash->{$x};
     $hash = $hash->{$x};
   }
 
